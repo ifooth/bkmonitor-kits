@@ -1,6 +1,6 @@
 package main
 
-import "github.com/TencentBlueKing/bktoolkits/logger"
+import "github.com/TencentBlueKing/bkmonitor-kits/logger"
 
 // InitLogger initializes the logger
 func InitLogger() {

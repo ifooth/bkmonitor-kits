@@ -1,4 +1,4 @@
-module github.com/TencentBlueKing/bktoolkits
+module github.com/TencentBlueKing/bkmonitor-kits
 
 go 1.16
 

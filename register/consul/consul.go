@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bktoolkits/logger"
+	"github.com/TencentBlueKing/bkmonitor-kits/logger"
 )
 
 type Instance struct {
