@@ -12,6 +12,16 @@ import (
 
 type Level int8
 
+var loggerLevelMap = map[string]Level{
+	"debug":  DebugLevel,
+	"info":   InfoLevel,
+	"warn":   WarnLevel,
+	"error":  ErrorLevel,
+	"dpanic": DPanicLevel,
+	"panic":  PanicLevel,
+	"fatal":  FatalLevel,
+}
+
 const (
 	// DebugLevel logs are typically voluminous, and are usually disabled in
 	// production.
@@ -67,7 +77,7 @@ type Options struct {
 	MaxBackups int
 
 	// Level is a logging priority. Higher levels are more important.
-	Level Level
+	Level string
 }
 
 type Logger struct {
@@ -182,7 +192,10 @@ func New(opt Options) Logger {
 		})
 	}
 
-	core := zapcore.NewCore(encoder, w, zapcore.Level(opt.Level))
+	// 在这里将level转换为实际的level值
+	level := loggerLevelMap[opt.Level]
+
+	core := zapcore.NewCore(encoder, w, zapcore.Level(level))
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	return Logger{sugared: logger.Sugar()}
 }
