@@ -12,6 +12,7 @@ import (
 	"github.com/TencentBlueKing/bkmonitor-kits/logger"
 )
 
+// Instance 标识一个 Consul 连接实例
 type Instance struct {
 	ctx         context.Context
 	cancel      context.CancelFunc

@@ -80,6 +80,7 @@ type Options struct {
 	Level string
 }
 
+// Logger represents the global SugaredLogger
 type Logger struct {
 	sugared *zap.SugaredLogger
 }
