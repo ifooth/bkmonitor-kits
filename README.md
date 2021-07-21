@@ -49,9 +49,9 @@ consul 域名注册。
 
 我们诚挚地邀请你参与共建蓝鲸开源社区，通过提 bug、提特性需求以及贡献代码等方式，一起让蓝鲸开源社区变得更好。
 
-![bk](https://raw.githubusercontent.com/TencentBlueKing/collector-go-sdk/master/docs/img/%E5%BC%80%E6%BA%90%E4%BA%A4%E6%B5%81.png)
+![bkmonitor-kits](https://user-images.githubusercontent.com/19553554/126454082-d21b22f9-6df9-487f-82c1-a9dcd054f29a.png)
 
 
 ## License
 
-基于 MIT 协议，详细请参考 LICENSE
+基于 MIT 协议，详细请参考 [LICENSE](./LICENSE)
