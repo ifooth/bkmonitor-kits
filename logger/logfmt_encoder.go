@@ -12,6 +12,8 @@
 package logger
 
 import (
+	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -64,6 +66,7 @@ func (enc *logfmtEncoder) Reset() {
 	enc.namespaces = nil
 }
 
+// implement ObjectEncoder interface https://github.com/uber-go/zap/blob/master/zapcore/encoder.go#L341
 func (enc *logfmtEncoder) AddArray(k string, marshaler zapcore.ArrayMarshaler) error {
 	return enc.Encoder.EncodeKeyval(k, marshaler)
 }
@@ -73,6 +76,16 @@ func (enc *logfmtEncoder) AddObject(k string, marshaler zapcore.ObjectMarshaler)
 
 func (enc *logfmtEncoder) AddReflected(k string, value interface{}) error {
 	return enc.Encoder.EncodeKeyval(k, value)
+}
+
+func (enc *logfmtEncoder) AddTime(k string, v time.Time) {
+	if enc.buf.Len() > 0 {
+		enc.buf.AppendByte(' ')
+	}
+
+	enc.buf.AppendString(fmt.Sprintf("%s=", k))
+	enc.EncodeTime(v, enc)
+	enc.buf.AppendByte(' ')
 }
 
 func (enc *logfmtEncoder) OpenNamespace(key string) {
@@ -93,7 +106,6 @@ func (enc *logfmtEncoder) AddInt32(k string, v int32)            { enc.Encoder.E
 func (enc *logfmtEncoder) AddInt16(k string, v int16)            { enc.Encoder.EncodeKeyval(k, v) }
 func (enc *logfmtEncoder) AddInt8(k string, v int8)              { enc.Encoder.EncodeKeyval(k, v) }
 func (enc *logfmtEncoder) AddString(k, v string)                 { enc.Encoder.EncodeKeyval(k, v) }
-func (enc *logfmtEncoder) AddTime(k string, v time.Time)         { enc.Encoder.EncodeKeyval(k, v) }
 func (enc *logfmtEncoder) AddUint(k string, v uint)              { enc.Encoder.EncodeKeyval(k, v) }
 func (enc *logfmtEncoder) AddUint64(k string, v uint64)          { enc.Encoder.EncodeKeyval(k, v) }
 func (enc *logfmtEncoder) AddUint32(k string, v uint32)          { enc.Encoder.EncodeKeyval(k, v) }
@@ -101,6 +113,67 @@ func (enc *logfmtEncoder) AddUint16(k string, v uint16)          { enc.Encoder.E
 func (enc *logfmtEncoder) AddUint8(k string, v uint8)            { enc.Encoder.EncodeKeyval(k, v) }
 func (enc *logfmtEncoder) AddUintptr(k string, v uintptr)        { enc.Encoder.EncodeKeyval(k, v) }
 
+// implement PrimitiveArrayEncoder interface https://github.com/uber-go/zap/blob/master/zapcore/encoder.go#L402
+func (enc *logfmtEncoder) AppendBool(val bool) {
+	enc.buf.AppendBool(val)
+}
+
+func (enc *logfmtEncoder) AppendComplex128(val complex128) {
+	// Cast to a platform-independent, fixed-size type.
+	r, i := float64(real(val)), float64(imag(val))
+	enc.buf.AppendByte('"')
+	// Because we're always in a quoted string, we can use strconv without
+	// special-casing NaN and +/-Inf.
+	enc.buf.AppendFloat(r, 64)
+	enc.buf.AppendByte('+')
+	enc.buf.AppendFloat(i, 64)
+	enc.buf.AppendByte('i')
+	enc.buf.AppendByte('"')
+}
+
+func (enc *logfmtEncoder) appendFloat(val float64, bitSize int) {
+	switch {
+	case math.IsNaN(val):
+		enc.buf.AppendString(`NaN`)
+	case math.IsInf(val, 1):
+		enc.buf.AppendString(`+Inf`)
+	case math.IsInf(val, -1):
+		enc.buf.AppendString(`-Inf`)
+	default:
+		enc.buf.AppendFloat(val, bitSize)
+	}
+}
+
+func (enc *logfmtEncoder) AppendInt64(val int64) {
+	enc.buf.AppendInt(val)
+}
+
+func (enc *logfmtEncoder) AppendUint64(val uint64) {
+	enc.buf.AppendUint(val)
+}
+
+func (enc *logfmtEncoder) AppendByteString(val []byte) {
+	enc.buf.AppendString(string(val))
+}
+
+func (enc *logfmtEncoder) AppendString(val string) {
+	enc.buf.AppendString(val)
+}
+
+func (enc *logfmtEncoder) AppendComplex64(v complex64) { enc.AppendComplex128(complex128(v)) }
+func (enc *logfmtEncoder) AppendFloat64(v float64)     { enc.appendFloat(v, 64) }
+func (enc *logfmtEncoder) AppendFloat32(v float32)     { enc.appendFloat(float64(v), 32) }
+func (enc *logfmtEncoder) AppendInt(v int)             { enc.AppendInt64(int64(v)) }
+func (enc *logfmtEncoder) AppendInt32(v int32)         { enc.AppendInt64(int64(v)) }
+func (enc *logfmtEncoder) AppendInt16(v int16)         { enc.AppendInt64(int64(v)) }
+func (enc *logfmtEncoder) AppendInt8(v int8)           { enc.AppendInt64(int64(v)) }
+func (enc *logfmtEncoder) AppendUint(v uint)           { enc.AppendUint64(uint64(v)) }
+func (enc *logfmtEncoder) AppendUint32(v uint32)       { enc.AppendUint64(uint64(v)) }
+func (enc *logfmtEncoder) AppendUint16(v uint16)       { enc.AppendUint64(uint64(v)) }
+func (enc *logfmtEncoder) AppendUint8(v uint8)         { enc.AppendUint64(uint64(v)) }
+func (enc *logfmtEncoder) AppendUintptr(v uintptr)     { enc.AppendUint64(uint64(v)) }
+
+// implement Encoder interface https://github.com/uber-go/zap/blob/master/zapcore/encoder.go#L432
 func (enc *logfmtEncoder) Clone() zapcore.Encoder {
 	clone := enc.clone()
 	clone.buf.Write(enc.buf.Bytes())
@@ -119,7 +192,7 @@ func (enc *logfmtEncoder) clone() *logfmtEncoder {
 func (enc *logfmtEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
 	final := enc.clone()
 
-	if final.TimeKey != "" {
+	if final.TimeKey != "" && final.EncodeTime != nil {
 		final.AddTime(final.TimeKey, ent.Time)
 	}
 

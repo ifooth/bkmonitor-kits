@@ -68,7 +68,7 @@ func TestLoggerWithLogfmtEncoder(t *testing.T) {
 	sugar.Infof("Failed to fetch URL: %s", "url")
 
 	// 去掉动态的 ts 字段
-	removedTs := buf.String()[36:]
+	removedTs := buf.String()[27:]
 
 	assert.Equal(t, "level=info caller=testing/testing.go:1123\n", removedTs, "Unexpected encoder output")
 
@@ -82,7 +82,7 @@ func TestLoggerWithLogfmtEncoder(t *testing.T) {
 		"backoff", time.Second,
 		"component", "logger",
 	)
-	removedTs = buf.String()[36:]
+	removedTs = buf.String()[27:]
 
 	assert.Equal(t, "level=warn caller=testing/testing.go:1123 url=url attempt=3 backoff=1s component=logger\n", removedTs, "Unexpected encoder output")
 }
