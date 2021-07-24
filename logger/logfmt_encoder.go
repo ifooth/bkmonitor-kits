@@ -208,6 +208,12 @@ func (enc *logfmtEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field)
 		}
 	}
 
+	if final.MessageKey != "" {
+		if err := final.Encoder.EncodeKeyval(final.MessageKey, ent.Message); err != nil {
+			return nil, err
+		}
+	}
+
 	addFields(final, fields)
 
 	// add endline
