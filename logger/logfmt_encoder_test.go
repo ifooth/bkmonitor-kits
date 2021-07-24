@@ -12,8 +12,10 @@ package logger
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -47,4 +49,40 @@ func assertOutput(t testing.TB, desc string, expected string, f func(zapcore.Enc
 	assert.Equal(t, expected, l.buf.String(), "Unexpected encoder output after adding a %s.", desc)
 
 	l.Reset()
+}
+
+func TestLoggerWithLogfmtEncoder(t *testing.T) {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Local().Format("2006-01-02 15:04:05.000"))
+	}
+	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+
+	encoder := NewLogfmtEncoder(encoderConfig)
+
+	buf := bufferpool.Get()
+
+	core := zapcore.NewCore(encoder, zapcore.AddSync(buf), zapcore.Level(0))
+	sugar := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
+
+	sugar.Infof("Failed to fetch URL: %s", "url")
+
+	// 去掉动态的 ts 字段
+	removedTs := buf.String()[36:]
+
+	assert.Equal(t, "level=info caller=testing/testing.go:1123\n", removedTs, "Unexpected encoder output")
+
+	buf.Reset()
+	valLogger := sugar.With("component", "thanos")
+
+	valLogger.Warnw("failed to fetch URL",
+		// Structured context as loosely typed key-value pairs.
+		"url", "url",
+		"attempt", 3,
+		"backoff", time.Second,
+		"component", "logger",
+	)
+	removedTs = buf.String()[36:]
+
+	assert.Equal(t, "level=warn caller=testing/testing.go:1123 url=url attempt=3 backoff=1s component=logger\n", removedTs, "Unexpected encoder output")
 }
