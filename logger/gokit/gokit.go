@@ -47,7 +47,7 @@ func (l Logger) Log(keyvals ...interface{}) error {
 		} else if key == "msg" {
 			msg = fmt.Sprintf("%s", keyvals[i+1])
 		} else {
-			keysAndValues = append(keysAndValues, keyvals[i+1], keyvals[i+1])
+			keysAndValues = append(keysAndValues, keyvals[i], keyvals[i+1])
 		}
 	}
 

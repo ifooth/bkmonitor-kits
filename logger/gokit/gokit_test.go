@@ -21,7 +21,7 @@ import (
 )
 
 func TestGoKitLogger(t *testing.T) {
-	l := logger.StandardLogger()
+	l := logger.New(logger.Options{Format: "logfmt", Level: "debug", Stdout: true})
 	kitLog := NewLogger(l)
 
 	assert.Empty(t, kitLog.Log("hello", "world"))
