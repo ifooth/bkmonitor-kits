@@ -163,6 +163,49 @@ func (l Logger) Fatalf(template string, args ...interface{}) {
 	l.sugared.Fatalf(template, args...)
 }
 
+// Debugw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Debugw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Debugw(msg, keysAndValues...)
+}
+
+// Infow logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Infow(msg string, keysAndValues ...interface{}) {
+	l.sugared.Infow(msg, keysAndValues...)
+}
+
+// Warnw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Warnw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Warnw(msg, keysAndValues...)
+}
+
+// Errorw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Errorw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Errorw(msg, keysAndValues...)
+}
+
+// DPanicw logs a message with some additional context. In development, the
+// logger then panics. (See DPanicLevel for details.) The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) DPanicw(msg string, keysAndValues ...interface{}) {
+	l.sugared.DPanicw(msg, keysAndValues...)
+}
+
+// Panicw logs a message with some additional context, then panics. The
+// variadic key-value pairs are treated as they are in With.
+func (l Logger) Panicw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Panicw(msg, keysAndValues...)
+}
+
+// Fatalw logs a message with some additional context, then calls os.Exit. The
+// variadic key-value pairs are treated as they are in With.
+func (l Logger) Fatalw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Fatalw(msg, keysAndValues...)
+}
+
 // New returns the logger instance with Production Config by default.
 func New(opt Options) Logger {
 	encoderConfig := zap.NewProductionEncoderConfig()
@@ -296,4 +339,47 @@ func Panicf(template string, args ...interface{}) {
 // Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
 func Fatalf(template string, args ...interface{}) {
 	std.sugared.Fatalf(template, args...)
+}
+
+// Debugw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Debugw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Debugw(msg, keysAndValues...)
+}
+
+// Infow logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Infow(msg string, keysAndValues ...interface{}) {
+	std.sugared.Infow(msg, keysAndValues...)
+}
+
+// Warnw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Warnw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Warnw(msg, keysAndValues...)
+}
+
+// Errorw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Errorw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Errorw(msg, keysAndValues...)
+}
+
+// DPanicw logs a message with some additional context. In development, the
+// logger then panics. (See DPanicLevel for details.) The variadic key-value
+// pairs are treated as they are in With.
+func DPanicw(msg string, keysAndValues ...interface{}) {
+	std.sugared.DPanicw(msg, keysAndValues...)
+}
+
+// Panicw logs a message with some additional context, then panics. The
+// variadic key-value pairs are treated as they are in With.
+func Panicw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Panicw(msg, keysAndValues...)
+}
+
+// Fatalw logs a message with some additional context, then calls os.Exit. The
+// variadic key-value pairs are treated as they are in With.
+func Fatalw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Fatalw(msg, keysAndValues...)
 }
