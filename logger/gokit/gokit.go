@@ -28,7 +28,7 @@ func NewLogger(l logger.Logger) Logger {
 
 }
 
-// Log Implementation https://github.com/go-kit/kit/blob/master/log/log.go#L10 interface
+// implement Log interface https://github.com/go-kit/kit/blob/master/log/log.go#L10
 func (l Logger) Log(keyvals ...interface{}) error {
 	if len(keyvals)%2 != 0 {
 		keyvals = append(keyvals, log.ErrMissingValue)
@@ -37,7 +37,7 @@ func (l Logger) Log(keyvals ...interface{}) error {
 	var level string
 	var msg string
 
-	keyvals2 := make([]interface{}, 0, len(keyvals))
+	keysAndValues := make([]interface{}, 0, len(keyvals))
 
 	for i := 0; i+2 <= len(keyvals); i += 2 {
 		key := fmt.Sprintf("%s", keyvals[i])
@@ -47,7 +47,7 @@ func (l Logger) Log(keyvals ...interface{}) error {
 		} else if key == "msg" {
 			msg = fmt.Sprintf("%s", keyvals[i+1])
 		} else {
-			keyvals2 = append(keyvals2, keyvals[i], keyvals[i+1])
+			keysAndValues = append(keysAndValues, keyvals[i+1], keyvals[i+1])
 		}
 	}
 
@@ -66,7 +66,7 @@ func (l Logger) Log(keyvals ...interface{}) error {
 		logFn = l.base.Infow
 	}
 
-	logFn(msg, keyvals2...)
+	logFn(msg, keysAndValues...)
 
 	return nil
 }

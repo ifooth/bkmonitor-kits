@@ -13,10 +13,11 @@ package gokit
 import (
 	"testing"
 
-	"github.com/TencentBlueKing/bkmonitor-kits/logger"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/TencentBlueKing/bkmonitor-kits/logger"
 )
 
 func TestGoKitLogger(t *testing.T) {
