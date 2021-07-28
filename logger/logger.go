@@ -54,7 +54,7 @@ type Options struct {
 	// Stdout sets the writer as stdout if it is true.
 	Stdout bool `yaml:"stdout"`
 
-	// logger ouput format, Valid values are "json", "console" and "logfmt", default is json
+	// logger ouput format, Valid values are "json", "console" and "logfmt", default is logfmt
 	Format string `yaml:"format"`
 
 	// Filename is the file to write logs to.  Backup log files will be retained
@@ -214,14 +214,16 @@ func New(opt Options) Logger {
 	}
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
+	var encoder zapcore.Encoder
 	switch opt.Format {
 	case "json":
+		encoder = zapcore.NewJSONEncoder(encoderConfig)
+	case "console":
 		encoder = zapcore.NewConsoleEncoder(encoderConfig)
 	case "logfmt":
 		encoder = NewLogfmtEncoder(encoderConfig)
-	case "console":
-		encoder = zapcore.NewConsoleEncoder(encoderConfig)
+	default:
+		encoder = NewLogfmtEncoder(encoderConfig)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(opt.Filename), os.ModePerm); err != nil {
@@ -249,7 +251,7 @@ func New(opt Options) Logger {
 	return Logger{sugared: logger.Sugar()}
 }
 
-var std = New(Options{Stdout: true, Format: "console"})
+var std = New(Options{Stdout: true, Format: "logfmt"})
 
 // StandardLogger returns the standard logger with stdout output.
 func StandardLogger() Logger {
