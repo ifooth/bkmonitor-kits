@@ -226,14 +226,15 @@ func New(opt Options) Logger {
 		encoder = NewLogfmtEncoder(encoderConfig)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(opt.Filename), os.ModePerm); err != nil {
-		panic(err)
-	}
-
 	var w zapcore.WriteSyncer
 	if opt.Stdout {
 		w = zapcore.AddSync(os.Stdout)
 	} else {
+		// 初始化日志目录
+		if err := os.MkdirAll(filepath.Dir(opt.Filename), os.ModePerm); err != nil {
+			panic(err)
+		}
+
 		w = zapcore.AddSync(&lumberjack.Logger{
 			Filename:   opt.Filename,
 			MaxSize:    opt.MaxSize,
