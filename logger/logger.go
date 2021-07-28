@@ -62,32 +62,32 @@ const (
 // Options is the option set for Logger.
 type Options struct {
 	// Stdout sets the writer as stdout if it is true.
-	Stdout bool
+	Stdout bool `yaml:"stdout"`
 
-	// ConsoleMode sets logger to be the console mode which claims the logger encoder type as console.
-	ConsoleMode bool
+	// logger ouput format, Valid values are "json", "console" and "logfmt", default is logfmt
+	Format string `yaml:"format"`
 
 	// Filename is the file to write logs to.  Backup log files will be retained
 	// in the same directory.
-	Filename string
+	Filename string `yaml:"filename"`
 
 	// MaxSize is the maximum size in megabytes of the log file before it gets rotated.
-	MaxSize int
+	MaxSize int `yaml:"max_size"`
 
 	// MaxAge is the maximum number of days to retain old log files based on the
 	// timestamp encoded in their filename.  Note that a day is defined as 24
 	// hours and may not exactly correspond to calendar days due to daylight
 	// savings, leap seconds, etc. The default is not to remove old log files
 	// based on age.
-	MaxAge int
+	MaxAge int `yaml:"max_age"`
 
 	// MaxBackups is the maximum number of old log files to retain. The default
 	// is to retain all old log files (though MaxAge may still cause them to get
 	// deleted.)
-	MaxBackups int
+	MaxBackups int `yaml:"max_backups"`
 
 	// Level is a logging priority. Higher levels are more important.
-	Level string
+	Level string `yaml:"level"`
 }
 
 // Logger represents the global SugaredLogger
@@ -173,6 +173,49 @@ func (l Logger) Fatalf(template string, args ...interface{}) {
 	l.sugared.Fatalf(template, args...)
 }
 
+// Debugw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Debugw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Debugw(msg, keysAndValues...)
+}
+
+// Infow logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Infow(msg string, keysAndValues ...interface{}) {
+	l.sugared.Infow(msg, keysAndValues...)
+}
+
+// Warnw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Warnw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Warnw(msg, keysAndValues...)
+}
+
+// Errorw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) Errorw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Errorw(msg, keysAndValues...)
+}
+
+// DPanicw logs a message with some additional context. In development, the
+// logger then panics. (See DPanicLevel for details.) The variadic key-value
+// pairs are treated as they are in With.
+func (l Logger) DPanicw(msg string, keysAndValues ...interface{}) {
+	l.sugared.DPanicw(msg, keysAndValues...)
+}
+
+// Panicw logs a message with some additional context, then panics. The
+// variadic key-value pairs are treated as they are in With.
+func (l Logger) Panicw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Panicw(msg, keysAndValues...)
+}
+
+// Fatalw logs a message with some additional context, then calls os.Exit. The
+// variadic key-value pairs are treated as they are in With.
+func (l Logger) Fatalw(msg string, keysAndValues ...interface{}) {
+	l.sugared.Fatalw(msg, keysAndValues...)
+}
+
 // New returns the logger instance with Production Config by default.
 func New(opt Options) Logger {
 	encoderConfig := zap.NewProductionEncoderConfig()
@@ -181,9 +224,16 @@ func New(opt Options) Logger {
 	}
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
-	if opt.ConsoleMode {
+	var encoder zapcore.Encoder
+	switch opt.Format {
+	case "json":
+		encoder = zapcore.NewJSONEncoder(encoderConfig)
+	case "console":
 		encoder = zapcore.NewConsoleEncoder(encoderConfig)
+	case "logfmt":
+		encoder = NewLogfmtEncoder(encoderConfig)
+	default:
+		encoder = NewLogfmtEncoder(encoderConfig)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(opt.Filename), os.ModePerm); err != nil {
@@ -211,7 +261,7 @@ func New(opt Options) Logger {
 	return Logger{sugared: logger.Sugar()}
 }
 
-var std = New(Options{Stdout: true, ConsoleMode: true})
+var std = New(Options{Stdout: true, Format: "logfmt"})
 
 // StandardLogger returns the standard logger with stdout output.
 func StandardLogger() Logger {
@@ -301,4 +351,47 @@ func Panicf(template string, args ...interface{}) {
 // Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
 func Fatalf(template string, args ...interface{}) {
 	std.sugared.Fatalf(template, args...)
+}
+
+// Debugw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Debugw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Debugw(msg, keysAndValues...)
+}
+
+// Infow logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Infow(msg string, keysAndValues ...interface{}) {
+	std.sugared.Infow(msg, keysAndValues...)
+}
+
+// Warnw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Warnw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Warnw(msg, keysAndValues...)
+}
+
+// Errorw logs a message with some additional context. The variadic key-value
+// pairs are treated as they are in With.
+func Errorw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Errorw(msg, keysAndValues...)
+}
+
+// DPanicw logs a message with some additional context. In development, the
+// logger then panics. (See DPanicLevel for details.) The variadic key-value
+// pairs are treated as they are in With.
+func DPanicw(msg string, keysAndValues ...interface{}) {
+	std.sugared.DPanicw(msg, keysAndValues...)
+}
+
+// Panicw logs a message with some additional context, then panics. The
+// variadic key-value pairs are treated as they are in With.
+func Panicw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Panicw(msg, keysAndValues...)
+}
+
+// Fatalw logs a message with some additional context, then calls os.Exit. The
+// variadic key-value pairs are treated as they are in With.
+func Fatalw(msg string, keysAndValues ...interface{}) {
+	std.sugared.Fatalw(msg, keysAndValues...)
 }
